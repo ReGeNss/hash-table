@@ -4,9 +4,9 @@ export class HashTable<K, V> {
   private entries: LinkedList<Entry<K, V>>[];
   private _size: number;
 
-  constructor(entries: LinkedList<Entry<K, V>>[], size: number) {
+  constructor(entries: LinkedList<Entry<K, V>>[]) {
     this.entries = entries;
-    this._size = size;
+    this._size = entries.length;
   }
 
   public add(key: K, value: V): void {
@@ -58,8 +58,9 @@ export class HashTable<K, V> {
   }
 
   public clear = () => {
-    this.entries = [];
-    this._size = 0;
+    for(const entry of this){
+      entry!.clear();
+    }
   }
 
   public keys (): K[] {
