@@ -77,6 +77,11 @@ export default class LinkedList<T> {
   }
 
   addLast(value:T): void{
+    if(this._last === null){
+      this._first = new _Node<T>(null, null, value, 0);
+      this._last = this._first;
+      return;
+    }
     const newNode = new _Node<T>(this._last, null, value, this._last!.index + 1);
     this._last!.right = newNode;
     this._last = newNode;

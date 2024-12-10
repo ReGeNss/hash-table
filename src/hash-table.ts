@@ -1,23 +1,23 @@
 import LinkedList from "./linked-list";
 
 export class HashTable<K, V> {
-  private entries: LinkedList<Entry<K, V>>[];
-  private _size: number;
+  private readonly _entries: LinkedList<Entry<K, V>>[];
+  private readonly _size: number;
 
-  constructor(entries: LinkedList<Entry<K, V>>[]) {
-    this.entries = entries;
-    this._size = entries.length;
+  constructor(size: number) {
+    this._size = size;
+    this._entries = new Array(size).fill(null).map(() => new LinkedList());
   }
 
   public add(key: K, value: V): void {
     const index = this.getIndex(key);
-    const list = this.entries[index];
+    const list = this._entries[index];
     list.addLast(new Entry(key, value));
   }
 
   public remove(key: K): void {
     const index = this.getIndex(key);
-    const list = this.entries[index];
+    const list = this._entries[index];
     const entry = list.find((entry) => entry.key === key);
     if(entry) {
       list.remove(entry);
@@ -26,25 +26,26 @@ export class HashTable<K, V> {
 
   public get(key: K): V | null {
     const index = this.getIndex(key);
-    const list = this.entries[index];
+    const list = this._entries[index];
     const value = list.find((entry) => entry.key === key);
     return value?.value || null;
   }
 
   public find(fnc:(value: V) => boolean): V | null {
-    for(const entry of this){
-      for(const e of entry!){
-        if(fnc(e!.value)){
-          return e!.value;
+    const value = this.mapEntries(
+        (e: Entry<K,V>) => {
+          if(fnc(e.value)){
+            return e.value;
+          }
         }
-      }
-    }
+    );
+    if(value[0]) return value[0];
     return null;
   }
 
   [Symbol.iterator](){
     let index = 0;
-    const entries = this.entries;
+    const entries = this._entries;
     return {
       next(){
         if(index === entries.length){
@@ -57,39 +58,22 @@ export class HashTable<K, V> {
     }
   }
 
-  public clear = () => {
+  public clear() {
     for(const entry of this){
       entry!.clear();
     }
   }
 
   public keys (): K[] {
-    const keys = [];
-    for(const entry of this) {
-      for (const e of entry!) {
-        keys.push(e!.key);
-      }
-    }
-    return keys;
+    return this.mapEntries((e: Entry<K,V>) => e.key);
   }
 
-  public values = () => {
-    const values = [];
-    for(const entry of this) {
-      for (const e of entry!) {
-        values.push(e!.value);
-      }
-    }
-    return values;
+  public values() {
+    return this.mapEntries((e: Entry<K,V>) => e.value);
   }
 
   public entities(): (K | V)[][] {
-    const entities = [];
-    for(const entry of this) {
-      for (const e of entry!) {
-        entities.push(e);
-      }
-    }
+    const entities = this.mapEntries((e: Entry<K,V>)=> e);
     const res = [];
     for(const e of entities){
       res.push([e!.key, e!.value]);
@@ -103,15 +87,27 @@ export class HashTable<K, V> {
   }
 
   public clone(): HashTable<K,V> {
-    const entries = this.entries.map((list) => {
-      return new LinkedList(...list);
-    });
-    return new HashTable<K,V>(entries as LinkedList<Entry<K, V>>[], this._size);
+    const hashTable = new HashTable<K,V>(this._size);
+    for(const entry of this._entries){
+      for(const e of entry)
+      hashTable.add(e!.key, e!.value);
+    }
+    return hashTable;
   }
 
   private getIndex(key: K): number {
     const hash = this.getHashCode(key);
-    return hash % this._size;
+    return (this._size % hash) -1;
+  }
+
+  private mapEntries(fnc: Function){
+    const values = [];
+    for(const entry of this._entries){
+      for(const e of entry){
+        values.push(fnc(e));
+      }
+    }
+    return values;
   }
 
   private getHashCode(key: K): number {
@@ -124,6 +120,7 @@ export class HashTable<K, V> {
       keyString = JSON.stringify(key);
     }
 
+
     let hash = 0;
     for (let i = 0; i < keyString.length; i++) {
       const char = keyString.charCodeAt(i);
@@ -134,6 +131,6 @@ export class HashTable<K, V> {
   }
 }
 
-export class Entry<K, V>{
+class Entry<K, V>{
   constructor(public key: K, public value: V){}
 }

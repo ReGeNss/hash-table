@@ -7,7 +7,10 @@
     "serve": "node --watch ./dist/index.js",
     "watch": "tsc --watch"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@types/node": "^22.10.1",
+    "crypto-js": "^4.2.0"
+  },
   "devDependencies": {
     "typescript": "^5.5.3"
   },
