@@ -1,4 +1,5 @@
 import LinkedList from "./linked-list";
+import Crypto from "crypto";
 
 export class HashTable<K, V> {
   private readonly _entries: LinkedList<Entry<K, V>>[];
@@ -97,7 +98,7 @@ export class HashTable<K, V> {
 
   private getIndex(key: K): number {
     const hash = this.getHashCode(key);
-    return (this._size % hash) -1;
+    return Number(hash % BigInt(this._size));
   }
 
   private mapEntries(fnc: Function){
@@ -110,7 +111,7 @@ export class HashTable<K, V> {
     return values;
   }
 
-  private getHashCode(key: K): number {
+  private getHashCode(key: K): bigint {
     let keyString;
     if(typeof key === "string"){
       keyString = key;
@@ -120,14 +121,8 @@ export class HashTable<K, V> {
       keyString = JSON.stringify(key);
     }
 
-
-    let hash = 0;
-    for (let i = 0; i < keyString.length; i++) {
-      const char = keyString.charCodeAt(i);
-      hash = (hash << 5) - hash + char;
-      hash |= 0;
-    }
-    return Math.abs(hash);
+    const hmac = Crypto.createHash("sha256").update(keyString).digest('hex');
+    return BigInt(`0x${hmac}`);
   }
 }
 
