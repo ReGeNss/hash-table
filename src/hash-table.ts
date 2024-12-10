@@ -1,4 +1,5 @@
 import LinkedList from "./linked-list";
+import Crypto from "crypto";
 
 export class HashTable<K, V> {
   private readonly _entries: LinkedList<Entry<K, V>>[];
@@ -120,14 +121,16 @@ export class HashTable<K, V> {
       keyString = JSON.stringify(key);
     }
 
-
-    let hash = 0;
-    for (let i = 0; i < keyString.length; i++) {
-      const char = keyString.charCodeAt(i);
-      hash = (hash << 5) - hash + char;
-      hash |= 0;
-    }
-    return Math.abs(hash);
+    const hmac = Crypto.createHash("md5").update(keyString).digest('hex');
+    const hash = BigInt(`0x${hmac}`)
+    return Number(hash);
+    // let hash = 0;
+    // for (let i = 0; i < keyString.length; i++) {
+    //   const char = keyString.charCodeAt(i);
+    //   hash = (hash << 5) - hash + char;
+    //   hash |= 0;
+    // }
+    // return Math.abs(hash);
   }
 }
 
